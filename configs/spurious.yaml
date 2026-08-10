@@ -1,0 +1,19 @@
+# Level-2 planted-spurious necessity benchmark generation
+n_train: 2400
+n_test: 800
+n_causal: 3
+T: 32
+depths: [1, 2, 3, 4]
+
+spurious_gap: 3.0            # |level| of the spurious channel (high-SNR shortcut)
+causal_noise: 0.3           # observation noise on causal channels
+spurious_noise: 0.3         # observation noise on the spurious channel
+shift_mode: shift_decorr    # shift_decorr (spurious independent) | shift_flip (inverted)
+allow_until: false          # nested Until is O(T^2); off keeps generation cheap
+seed: 0
+
+# guards (refuse to save a benchmark that cannot test the hypothesis)
+min_yes_frac: 0.40          # class balance lower bound, per split
+max_yes_frac: 0.60          # class balance upper bound, per split
+min_train_shortcut: 0.99    # the spurious shortcut MUST be learnable in train/indist
+max_shift_shortcut: 0.70    # ...and MUST be broken under shift (<= chance band)

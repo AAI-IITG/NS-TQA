@@ -1,0 +1,75 @@
+# XJTU-SY bearing necessity / generalization experiment.
+#
+# Headline cross-LOAD shift: train on 35Hz12kN -> evaluate on (a) held-out
+# 35Hz12kN bearings [in-dist] and (b) the higher-speed/lower-load regimes
+# 37.5Hz11kN + 40Hz10kN [shift]. The script also plants a spurious shortcut
+# (script-13 style) and reports baselines collapsing under load shift while the
+# faithful NS-TQA path stays invariant.
+#
+# Bearing lives are very heterogeneous (42..2538 snapshots), so T is kept short
+# (else the shortest bearings yield no windows) and the long bearings are capped
+# with max_windows_per_unit to keep the build balanced and fast.
+# (To instead do a held-out-bearing run, set shift=unit.)
+run_root: runs/xjtu_necessity
+device: cpu                       # cpu | cuda
+
+adapter:
+  root: data/raw/XJTU-SY_Bearing_Datasets/Data/XJTU-SY_Bearing_Datasets
+  fs: 25600
+  n_bands: 3                      # FFT band energies per axis -> 2*(4+n_bands) HI channels
+  min_snapshots: 1
+  cache_path: data/processed/xjtu_hi.pkl
+  force_recompute: false
+  hi_q: 0.85
+  lo_q: 0.15
+
+build:
+  T: 32
+  stride: 2
+  depths: [1, 2, 3, 4]
+  shift: condition                          # condition = cross-load; unit = held-out bearing
+  train_conditions: [35Hz12kN]
+  test_conditions: [37.5Hz11kN, 40Hz10kN]
+  indist_holdout_frac: 0.4                  # hold out 2 of 5 35Hz12kN bearings for in-dist (a single
+                                            # held-out bearing made `high` near-constant -> F1 collapse;
+                                            # see scripts/17 diagnostic). Shift pool is unaffected.
+  n_train_per_depth: 300
+  n_test_per_depth: 120
+  smooth_k: 5
+  a_level: 4.0
+  allow_until: false
+  max_windows_per_unit: 300                 # cap long bearings (2538 snapshots) -> balanced + fast
+  over_factor: 120
+  build_seed: 0
+  rul_k: 30                                 # RUL-grounded family (scripts/19): near-failure = RUL<=30 snapshots
+
+experiment:
+  seeds: [0, 1, 2, 3, 4]
+  baselines: [lstm, transformer, tcn]
+
+# Optional planted-spurious necessity bridge; only runs when a shift pool exists.
+spurious:
+  strength: 3.0
+  shift_modes: [shift_decorr, shift_flip]
+
+# ---- model hyperparameters consumed by necessity.run_single ----
+lstm:                             # shared by all end-to-end baselines (lstm/transformer/tcn)
+  hidden: 64
+  dropout: 0.2
+  lr: 1.0e-3
+  weight_decay: 1.0e-4
+  batch_size: 64
+  epochs: 40
+  grad_clip_norm: 5.0
+  log_every: 10
+
+perception:                       # learned X -> predicate-truth net for the faithful NS-TQA path
+  hidden: 32
+  kernel: 5
+  n_layers: 2
+  per_channel: true
+  lr: 1.0e-3
+  weight_decay: 0.0
+  batch_size: 64
+  epochs: 80
+  log_every: 20

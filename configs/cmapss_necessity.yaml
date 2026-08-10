@@ -1,0 +1,57 @@
+# C-MAPSS necessity experiment: end-to-end baselines vs NS-TQA on REAL signals.
+# Train on FD001 -> evaluate on (a) held-out FD001 engines [in-dist] and
+# (b) shifted operating regimes FD002/FD004 [shift]. Non-circular by construction
+# (privileged train-only grounding, held-out engines, learned perception).
+run_root: runs/cmapss_necessity
+device: cpu                       # cpu | cuda
+
+adapter:
+  root: data/raw/CMAPSS           # expects train_FD001.txt, train_FD002.txt, train_FD004.txt
+  rul_cap: 125
+  flat_std_thresh: 1.0e-6
+  min_qspan: 0.05                 # drops degenerate channels like s6
+  hi_q: 0.85
+  lo_q: 0.15
+
+build:
+  T: 48
+  stride: 4
+  depths: [1, 2, 3, 4]
+  shift: condition
+  train_conditions: [FD001]
+  test_conditions: [FD002, FD004]
+  indist_holdout_frac: 0.2        # fraction of FD001 engines held out for the in-dist test
+  n_train_per_depth: 400
+  n_test_per_depth: 150
+  smooth_k: 5
+  a_level: 4.0
+  allow_until: false
+  max_windows_per_unit: 200       # cap windows per engine (keeps build balanced + fast)
+  over_factor: 60
+  build_seed: 0
+
+experiment:
+  seeds: [0, 1, 2, 3, 4]
+  baselines: [lstm, transformer, tcn]
+
+# ---- model hyperparameters consumed by necessity.run_single ----
+lstm:                             # shared by all end-to-end baselines (lstm/transformer/tcn)
+  hidden: 64
+  dropout: 0.2
+  lr: 1.0e-3
+  weight_decay: 1.0e-4
+  batch_size: 64
+  epochs: 40
+  grad_clip_norm: 5.0
+  log_every: 10
+
+perception:                       # learned X -> predicate-truth net for the faithful NS-TQA path
+  hidden: 32
+  kernel: 5
+  n_layers: 2
+  per_channel: true               # structurally cannot route one channel into another's predicate
+  lr: 1.0e-3
+  weight_decay: 0.0
+  batch_size: 64
+  epochs: 80
+  log_every: 20

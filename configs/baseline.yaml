@@ -1,0 +1,19 @@
+# End-to-end LSTM baseline configuration
+dataset_path: data/processed/cmapss_FD001_qa.pkl
+run_root: runs/baseline
+seed: 0
+split_mode: random             # random | group
+group_key: null                # engine_id for C-MAPSS, bearing_id for PRONOSTIA
+train_frac: 0.70
+val_frac: 0.15
+batch_size: 64
+hidden: 64
+dropout: 0.20
+lr: 1.0e-3
+weight_decay: 1.0e-4
+epochs: 10
+early_stop_patience: 8
+early_stop_min_delta: 1.0e-4
+grad_clip_norm: 5.0
+device: cpu                    # cpu | cuda; cuda is used only after a real kernel check
+max_instances: null            # set an integer for smoke/debug runs

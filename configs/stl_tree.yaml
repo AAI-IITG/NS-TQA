@@ -1,0 +1,59 @@
+# WO-2C: learned-STL competitor (Bombara-style decision tree). CPU-only (scikit-learn).
+# Symbolic-LEARNING baseline: a depth-limited tree learns an STL formula over raw
+# signal primitives + the program encoding, trained on answer labels.
+run_root: runs/stl_tree
+max_depths: [4, 6, 8]        # report a few depth limits (interpretability vs accuracy)
+min_samples_leaf: 5
+
+datasets:
+  xjtu:
+    adapter:
+      root: data/raw/XJTU-SY_Bearing_Datasets/Data/XJTU-SY_Bearing_Datasets
+      fs: 25600
+      n_bands: 3
+      min_snapshots: 1
+      cache_path: data/processed/xjtu_hi.pkl
+      hi_q: 0.85
+      lo_q: 0.15
+    build:
+      T: 32
+      stride: 2
+      depths: [1, 2, 3, 4]
+      shift: condition
+      train_conditions: [35Hz12kN]
+      test_conditions: [37.5Hz11kN, 40Hz10kN]
+      indist_holdout_frac: 0.4
+      n_train_per_depth: 300
+      n_test_per_depth: 120
+      smooth_k: 5
+      a_level: 4.0
+      allow_until: false
+      max_windows_per_unit: 300
+      over_factor: 120
+      build_seed: 0
+  cmapss:
+    adapter:
+      root: data/raw/CMAPSS
+      rul_cap: 125
+      flat_std_thresh: 1.0e-6
+      min_qspan: 0.05
+      op_normalize: true
+    build:
+      T: 48
+      stride: 4
+      depths: [1, 2, 3, 4]
+      shift: condition
+      train_conditions: [FD001]
+      test_conditions: [FD002, FD004]
+      indist_holdout_frac: 0.2
+      n_train_per_depth: 400
+      n_test_per_depth: 150
+      smooth_k: 5
+      a_level: 4.0
+      allow_until: false
+      max_windows_per_unit: 200
+      over_factor: 60
+      build_seed: 0
+
+experiment:
+  seeds: [0, 1, 2, 3, 4]     # tree random_state (benchmark built once)

@@ -1,0 +1,56 @@
+# WO-1A: cross-rig matrix under BOTH label regimes (L-src vs L-tgt).
+# Mirrors cross_rig.yaml but with 10 model seeds and the label_regime study.
+# See docs/labeling_regimes.md and scripts/27_run_crossrig_labelregimes.py.
+run_root: runs/crossrig_stlonly
+device: cuda                        # cuda on the cluster; falls back to cpu if unavailable (select_device)
+
+rigs: [xjtu, femto, ims]
+
+adapters:
+  n_bands: 3                         # -> 14-channel shared HI vocabulary across rigs
+  hi_q: 0.85
+  lo_q: 0.15
+  xjtu_root: data/raw/XJTU-SY_Bearing_Datasets/Data/XJTU-SY_Bearing_Datasets
+  femto_root: data/raw/IEEE_PRONOSTIA_PHM/dataset
+  ims_root: data/raw/NASA_IMS_Bearings
+  ims_tests: []                      # [] = all 3 IMS rigs (12 bearings); cached after first load
+
+build:
+  T: 32
+  stride: 2
+  depths: [1, 2, 3, 4]
+  indist_holdout_frac: 0.3
+  n_train_per_depth: 200
+  n_test_per_depth: 120
+  smooth_k: 5
+  a_level: 4.0
+  allow_until: false
+  max_windows_per_unit: 200
+  over_factor: 120
+  build_seed: 0
+  label_fit_frac: 0.5                # L-tgt: fraction of each test rig's bearings used to fit its label grounding
+
+experiment:
+  seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]   # 10 model seeds (journal protocol); STL-only is deterministic
+  baselines: [lstm, transformer, tcn]
+
+lstm:
+  hidden: 64
+  dropout: 0.2
+  lr: 1.0e-3
+  weight_decay: 1.0e-4
+  batch_size: 64
+  epochs: 40
+  grad_clip_norm: 5.0
+  log_every: 10
+
+perception:
+  hidden: 32
+  kernel: 5
+  n_layers: 2
+  per_channel: true
+  lr: 1.0e-3
+  weight_decay: 0.0
+  batch_size: 64
+  epochs: 80
+  log_every: 20

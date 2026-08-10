@@ -1,0 +1,12 @@
+# PRONOSTIA / FEMTO bearing configuration
+dataset: pronostia
+root: data/raw/IEEE_PRONOSTIA_PHM/dataset  # contains Learning_set / Full_Test_Set / Test_set
+splits:
+  - Learning_set              # complete run-to-failure bearings; add Full_Test_Set if desired
+axis: both                    # horiz | vert | both
+n_bands: 2                    # FFT band-energy features (0 disables)
+# features per snapshot: rms, kurtosis, peak, crest (+ n_bands) per selected axis
+seq_len: 32                   # degradation-timeline window over snapshots
+stride: 1
+rul_cap: null                 # null = remaining snapshots to failure; or set an integer cap
+flat_std_thresh: 1.0e-8       # drop feature channels that are flat across loaded bearings

@@ -1,0 +1,10 @@
+[project]
+name = "neuro-symbolic-tqa"
+version = "0.1.0"
+description = "Neuro-symbolic temporal question answering over sensor signals"
+requires-python = ">=3.10"
+dependencies = ["torch>=2.0", "numpy>=1.24", "pyyaml>=6.0"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

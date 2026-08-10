@@ -1,0 +1,7 @@
+# Perception / grounding configuration
+smooth_k: 5                   # causal moving-average window
+a_level: 4.0                  # sigmoid sharpness for high/low predicates
+hi_q: 0.80                    # quantile -> high threshold
+lo_q: 0.20                    # quantile -> low threshold
+# trend sharpness is set from per-channel slope std at calibration time
+beta_train: 8.0               # soft-logic sharpness during training

@@ -1,0 +1,8 @@
+# C-MAPSS dataset configuration
+dataset: cmapss
+root: data/raw/CMAPSS        # expects train_FD001.txt etc. here
+subset: FD001                 # start with FD001 (single condition, single fault)
+rul_cap: 125                  # piecewise-linear capped RUL convention
+flat_std_thresh: 1.0e-6       # sensors with std below this are dropped (degenerate)
+seq_len: 48                   # window length for grounding/questions
+stride: 1

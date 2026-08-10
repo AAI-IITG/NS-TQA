@@ -1,0 +1,11 @@
+# Extension-only heavy deps (NOT required by the lean core; core imports without them).
+# WO-4 statistics: scipy (src/utils/stats.py has a numpy fallback).
+scipy>=1.10
+# WO-2A LLM-bridge: transformers/peft/accelerate (cluster: llm-runtime.sif + hf_shim).
+transformers>=4.44
+peft>=0.11
+accelerate>=0.30
+# WO-2B post-hoc XAI: shap (optional; posthoc.py returns None if absent).
+shap>=0.44
+# WO-2C learned-STL competitor: scikit-learn.
+scikit-learn>=1.3

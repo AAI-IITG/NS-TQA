@@ -1,0 +1,25 @@
+# caches / build
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# data (download separately — see data/README.md)
+data/raw/
+data/processed/
+data/synthetic/
+*.pkl
+
+# experiment outputs
+runs/
+outputs/
+slurm/
+
+
+# envs / editors
+.venv/
+venv/
+.DS_Store
+.idea/
+.vscode/

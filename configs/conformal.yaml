@@ -1,0 +1,46 @@
+# WO-7: split-conformal answer confidence on the NS-TQA robustness margin.
+# Calibrate on an in-distribution held-out split; test both in-dist and under an
+# operating-condition shift to expose coverage degradation (exchangeability break).
+run_root: runs/conformal
+device: cpu                   # rho is cheap; only perception trains (CPU-feasible)
+
+cmapss:
+  adapter:
+    root: data/raw/CMAPSS
+    rul_cap: 125
+    flat_std_thresh: 1.0e-6
+    min_qspan: 0.05
+    op_normalize: false
+    hi_q: 0.85
+    lo_q: 0.15
+  build:
+    T: 48
+    stride: 4
+    depths: [1, 2, 3, 4]
+    train_conditions: [FD001]
+    test_conditions: [FD002, FD004]
+    indist_holdout_frac: 0.35     # larger held-out pool -> split into calib + test
+    n_train_per_depth: 300
+    n_test_per_depth: 220
+    smooth_k: 5
+    a_level: 4.0
+    allow_until: false
+    max_windows_per_unit: 200
+    over_factor: 60
+    build_seed: 0
+
+experiment:
+  seeds: [0, 1, 2]
+  calib_frac: 0.5                 # split the in-dist held-out pool 50/50 calib/test
+  alphas: [0.30, 0.20, 0.15, 0.10, 0.05]
+
+perception:
+  hidden: 32
+  kernel: 5
+  n_layers: 2
+  per_channel: true
+  lr: 1.0e-3
+  weight_decay: 0.0
+  batch_size: 64
+  epochs: 60
+  log_every: 20

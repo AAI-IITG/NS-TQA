@@ -1,0 +1,28 @@
+# Necessity experiment: LSTM (end-to-end) vs NS-TQA (learned perception + executor)
+benchmark: data/synthetic/spurious_shift_decorr.pkl
+run_root: runs/necessity
+seed: 0
+device: cpu                    # cpu | cuda (validated with a real kernel)
+
+# end-to-end LSTM baseline (the ablation that CAN use the spurious shortcut)
+lstm:
+  hidden: 64
+  dropout: 0.2
+  lr: 1.0e-3
+  weight_decay: 1.0e-4
+  batch_size: 64
+  epochs: 40
+  grad_clip_norm: 5.0
+  log_every: 10
+
+# learned perception (X -> predicate truths) for the faithful NS-TQA path
+perception:
+  hidden: 32
+  kernel: 5
+  n_layers: 2
+  per_channel: true            # structurally cannot route spurious -> causal predicate
+  lr: 1.0e-3
+  weight_decay: 0.0
+  batch_size: 64
+  epochs: 80
+  log_every: 20

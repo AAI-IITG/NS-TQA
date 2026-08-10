@@ -1,0 +1,57 @@
+# WO-6B: RUL-grounded question family. Every program's temporal windows lie in the
+# near-failure region (per-step RUL <= rul_k), so answering requires reasoning about
+# the approach to failure rather than generic anomaly.
+run_root: runs/rul
+device: cpu
+
+cmapss:
+  adapter:
+    root: data/raw/CMAPSS
+    rul_cap: 125
+    flat_std_thresh: 1.0e-6
+    min_qspan: 0.05
+    op_normalize: false
+    hi_q: 0.85
+    lo_q: 0.15
+  build:
+    T: 48
+    stride: 4
+    depths: [1, 2, 3, 4]
+    train_conditions: [FD001]
+    test_conditions: [FD002, FD004]
+    indist_holdout_frac: 0.2
+    n_train_per_depth: 320
+    n_test_per_depth: 160
+    smooth_k: 5
+    a_level: 4.0
+    allow_until: false
+    max_windows_per_unit: 200
+    over_factor: 80
+    build_seed: 0
+    rul_k: 30                # near-failure = per-step RUL <= 30 cycles
+
+experiment:
+  seeds: [0, 1, 2, 3, 4]
+  baselines: [lstm]
+  k_sensitivity: [20, 30, 50]   # rebuild + retrain NS-TQA at each horizon (main is rul_k above)
+
+lstm:
+  hidden: 64
+  dropout: 0.2
+  lr: 1.0e-3
+  weight_decay: 1.0e-4
+  batch_size: 64
+  epochs: 35
+  grad_clip_norm: 5.0
+  log_every: 20
+
+perception:
+  hidden: 32
+  kernel: 5
+  n_layers: 2
+  per_channel: true
+  lr: 1.0e-3
+  weight_decay: 0.0
+  batch_size: 64
+  epochs: 60
+  log_every: 20

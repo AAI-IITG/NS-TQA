@@ -1,0 +1,57 @@
+# Cross-RIG transfer (Phase C): do health predicates transfer across machines?
+# Train perception on one bearing rig, evaluate on physically different rigs.
+# All rigs share the unified 14-channel vibration front-end (same n_bands).
+run_root: runs/cross_rig
+device: cpu
+
+rigs: [xjtu, femto, ims]            # rows = train rig; cols = test rig
+
+adapters:
+  n_bands: 3                         # MUST match across rigs -> 14 channels
+  hi_q: 0.85
+  lo_q: 0.15
+  xjtu_root: data/raw/XJTU-SY_Bearing_Datasets/Data/XJTU-SY_Bearing_Datasets
+  femto_root: data/raw/IEEE_PRONOSTIA_PHM/dataset
+  ims_root: data/raw/NASA_IMS_Bearings
+  ims_tests: []                      # [] = all 3 IMS rigs (12 bearings). First load is slow
+                                     #      (test1=2156, test3=6324 files) then cached; [ims2] = fast subset
+
+build:
+  T: 32
+  stride: 2
+  depths: [1, 2, 3, 4]
+  indist_holdout_frac: 0.3           # fraction of the train rig's bearings held out (diagonal cell)
+  n_train_per_depth: 200
+  n_test_per_depth: 120
+  smooth_k: 5
+  a_level: 4.0
+  allow_until: false
+  max_windows_per_unit: 200          # cap long bearings -> balanced + fast
+  over_factor: 120
+  build_seed: 0
+
+experiment:
+  seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+  baselines: [lstm, transformer, tcn]
+
+# ---- model hyperparameters (consumed by the necessity train/eval helpers) ----
+lstm:
+  hidden: 64
+  dropout: 0.2
+  lr: 1.0e-3
+  weight_decay: 1.0e-4
+  batch_size: 64
+  epochs: 40
+  grad_clip_norm: 5.0
+  log_every: 10
+
+perception:
+  hidden: 32
+  kernel: 5
+  n_layers: 2
+  per_channel: true
+  lr: 1.0e-3
+  weight_decay: 0.0
+  batch_size: 64
+  epochs: 80
+  log_every: 20

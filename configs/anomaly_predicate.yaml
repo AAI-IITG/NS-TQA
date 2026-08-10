@@ -1,0 +1,97 @@
+# WO-1C / C3b: learned `anomalous` predicate as a first-class family, with a
+# leakage-SAFE compositional benchmark (constraints a+b+c in
+# src/benchmark/anomaly_questions.py), on TWO PHM datasets (XJTU vibration +
+# C-MAPSS turbofan) to show the predicate-level necessity generalizes.
+# Claim (1): learned anomaly head beats the fixed max(high,low) proxy (macro-F1),
+# held-out units + shift. Claim (2): held-out single-predicate leakage <= 0.55 at
+# depth >= 2 (executor non-decorative).
+run_root: runs/anomaly_predicate
+device: cuda
+
+datasets:
+  xjtu:
+    adapter:
+      root: data/raw/XJTU-SY_Bearing_Datasets/Data/XJTU-SY_Bearing_Datasets
+      fs: 25600
+      n_bands: 3
+      min_snapshots: 1
+      cache_path: data/processed/xjtu_hi.pkl
+      force_recompute: false
+    build:
+      T: 32
+      stride: 2
+      depths: [1, 2, 3, 4]
+      shift: condition
+      train_conditions: [35Hz12kN]
+      test_conditions: [37.5Hz11kN, 40Hz10kN]
+      indist_holdout_frac: 0.4
+      healthy_frac: 0.25
+      n_train_per_depth: 200
+      n_test_per_depth: 400            # large n -> stable held-out leakage estimate
+      hi_q: 0.85
+      lo_q: 0.15
+      smooth_k: 5
+      a_level: 4.0
+      a_anom: 4.0
+      anomaly_q: 0.99
+      anomaly_p: 0.40                  # tuned: gate PASS both pools while exercising `anomalous`
+      allow_until: false
+      max_windows_per_unit: 200
+      over_factor: 180
+      build_seed: 0
+      leak_max: 0.55
+      max_leak_retries: 12
+  cmapss:
+    adapter:
+      root: data/raw/CMAPSS
+      rul_cap: 125
+      flat_std_thresh: 1.0e-6
+      min_qspan: 0.05
+      op_normalize: true          # operating-condition normalization (fixes FD002/4 regime shift)
+      n_regimes: 6
+    build:
+      T: 48
+      stride: 4
+      depths: [1, 2, 3, 4]
+      shift: condition
+      train_conditions: [FD001]
+      test_conditions: [FD002, FD004]
+      indist_holdout_frac: 0.2
+      healthy_frac: 0.25
+      n_train_per_depth: 200
+      n_test_per_depth: 400
+      hi_q: 0.85
+      lo_q: 0.15
+      smooth_k: 5
+      a_level: 4.0
+      a_anom: 4.0
+      anomaly_q: 0.99
+      anomaly_p: 0.40
+      allow_until: false
+      max_windows_per_unit: 200
+      over_factor: 180
+      build_seed: 0
+      leak_max: 0.55
+      max_leak_retries: 12
+
+experiment:
+  seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+perception:
+  hidden: 32
+  kernel: 5
+  n_layers: 2
+  per_channel: true
+  lr: 1.0e-3
+  weight_decay: 0.0
+  batch_size: 64
+  epochs: 80
+  log_every: 20
+
+anomaly_head:
+  hidden: 32
+  kernel: 5
+  n_layers: 2
+  epochs: 60
+  batch_size: 64
+  lr: 1.0e-3
