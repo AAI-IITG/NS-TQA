@@ -63,7 +63,6 @@ python -m pytest tests/ -q
 | `scripts/` | numbered, runnable experiment entry points (see below) |
 | `configs/` | YAML configs for each experiment |
 | `tests/` | unit tests for the executor, perception, benchmark, and metrics |
-| `docs/` | design notes (`labeling_regimes.md`, `DELTA.md`) |
 
 ---
 
@@ -136,9 +135,6 @@ The heavier experiments were run on a GPU; each script runs standalone from the 
   *verified* add-on (`src/parser/`) that can never place a malformed program on the answer path.
 - The benchmark is **non-circular**: answer labels come from a privileged grounding fit on
   training data only, and the model is always scored on held-out units or shifted conditions.
-
-See `docs/labeling_regimes.md` for the labeling protocol and `docs/DELTA.md` for the
-conference→journal extension log.
 
 ---
 
